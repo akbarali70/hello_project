@@ -12,7 +12,7 @@ import (
 
 func main() {
 	_ = godotenv.Load()
-	
+
 	gin.SetMode(gin.ReleaseMode)
 
 	if err := db.Connect(); err != nil {
