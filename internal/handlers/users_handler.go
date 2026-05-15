@@ -15,6 +15,7 @@ func GetUsers(c *gin.Context) {
 		SELECT id, name, email, age
 		FROM users
 		ORDER BY id DESC
+		LIMIT 100
 	`)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})

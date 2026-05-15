@@ -2,6 +2,7 @@ package routes
 
 import (
 	"hello_project/internal/handlers"
+	"hello_project/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 
@@ -18,7 +19,7 @@ func RegisterRoutes(r *gin.Engine) {
 
 	users := r.Group("/users")
 	{
-		users.GET("", handlers.GetUsers)
+		users.GET("", middleware.OneRequestPer10Seconds(), handlers.GetUsers)
 		users.GET("/:id", handlers.GetUserByID)
 		users.POST("", handlers.CreateUser)
 		users.PUT("/:id", handlers.UpdateUser)
