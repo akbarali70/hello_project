@@ -8,4 +8,5 @@ fmt:
 	go fmt ./...
 
 seed:
-	curl -X POST http://localhost:8001/seed/users
+	curl -sS -X POST http://localhost:8001/seed/users
+	

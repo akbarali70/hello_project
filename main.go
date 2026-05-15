@@ -7,9 +7,12 @@ import (
 	"hello_project/internal/routes"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	_ = godotenv.Load()
+	
 	gin.SetMode(gin.ReleaseMode)
 
 	if err := db.Connect(); err != nil {
