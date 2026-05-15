@@ -4,12 +4,17 @@ import (
 	"hello_project/internal/handlers"
 
 	"github.com/gin-gonic/gin"
+
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func RegisterRoutes(r *gin.Engine) {
 	r.GET("/", handlers.Home)
 	r.GET("/ping", handlers.Ping)
 	r.GET("/comments", handlers.GetComments)
+
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	users := r.Group("/users")
 	{

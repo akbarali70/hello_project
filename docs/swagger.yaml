@@ -1,0 +1,9 @@
+basePath: /
+host: localhost:8001
+info:
+  contact: {}
+  description: Gin
+  title: Hello Project API
+  version: "1.0"
+paths: {}
+swagger: "2.0"
