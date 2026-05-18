@@ -13,7 +13,6 @@ import (
 func RegisterRoutes(r *gin.Engine) {
 	r.GET("/", handlers.Home)
 	r.GET("/ping", handlers.Ping)
-	r.GET("/comments", handlers.GetComments)
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -26,5 +25,4 @@ func RegisterRoutes(r *gin.Engine) {
 		users.DELETE("/:id", handlers.DeleteUser)
 	}
 
-	r.POST("/seed/users", handlers.SeedUsers)
 }

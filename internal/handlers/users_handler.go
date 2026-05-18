@@ -1,38 +1,31 @@
 package handlers
 
 import (
-	"context"
-	"strconv"
+	"errors"
 
 	"hello_project/internal/db"
+	"hello_project/internal/dto"
 	"hello_project/internal/models"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
+// GetUsers godoc
+// @Summary Get users
+// @Description Get latest 100 users
+// @Tags users
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Router /users [get]
 func GetUsers(c *gin.Context) {
-	rows, err := db.Pool.Query(context.Background(), `
-		SELECT id, name, email, age
-		FROM users
-		ORDER BY id DESC
-		LIMIT 100
-	`)
-	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+	var users []models.User
+
+	if err := db.DB.Order("id desc").Limit(100).Find(&users).Error; err != nil {
+		c.JSON(500, gin.H{
+			"error": err.Error(),
+		})
 		return
-	}
-	defer rows.Close()
-
-	users := []models.User{}
-
-	for rows.Next() {
-		var user models.User
-		err := rows.Scan(&user.ID, &user.Name, &user.Email, &user.Age)
-		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
-			return
-		}
-		users = append(users, user)
 	}
 
 	c.JSON(200, gin.H{
@@ -40,19 +33,23 @@ func GetUsers(c *gin.Context) {
 	})
 }
 
+// GetUserByID godoc
+// @Summary Get user by ID
+// @Tags users
+// @Produce json
+// @Param id path int true "User ID"
+// @Success 200 {object} models.User
+// @Failure 404 {object} map[string]string
+// @Router /users/{id} [get]
 func GetUserByID(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
+	id := c.Param("id")
 
 	var user models.User
 
-	err := db.Pool.QueryRow(context.Background(), `
-		SELECT id, name, email, age
-		FROM users
-		WHERE id = $1
-	`, id).Scan(&user.ID, &user.Name, &user.Email, &user.Age)
-
-	if err != nil {
-		c.JSON(404, gin.H{"error": "user not found"})
+	if err := db.DB.First(&user, id).Error; err != nil {
+		c.JSON(404, gin.H{
+			"error": "user not found",
+		})
 		return
 	}
 
@@ -60,62 +57,97 @@ func GetUserByID(c *gin.Context) {
 }
 
 func CreateUser(c *gin.Context) {
-	var input models.User
+	var input dto.CreateUserInput
 
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{
+			"error": err.Error(),
+		})
 		return
 	}
 
-	err := db.Pool.QueryRow(context.Background(), `
-		INSERT INTO users (name, email, age)
-		VALUES ($1, $2, $3)
-		RETURNING id
-	`, input.Name, input.Email, input.Age).Scan(&input.ID)
+	user := models.User{
+		FirstName: input.FirstName,
+		LastName:  input.LastName,
+		Email:     input.Email,
+	}
 
-	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+	if err := db.DB.Create(&user).Error; err != nil {
+
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			c.JSON(409, gin.H{
+				"error": "email already exists",
+			})
+			return
+		}
+
+		c.JSON(500, gin.H{
+			"error": err.Error(),
+		})
 		return
 	}
 
-	c.JSON(201, input)
+	c.JSON(201, user)
 }
 
+// UpdateUser godoc
+// @Summary Update user
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param id path int true "User ID"
+// @Param user body models.User true "User data"
+// @Success 200 {object} models.User
+// @Router /users/{id} [put]
 func UpdateUser(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
+	id := c.Param("id")
+
+	var user models.User
+
+	if err := db.DB.First(&user, id).Error; err != nil {
+		c.JSON(404, gin.H{
+			"error": "user not found",
+		})
+		return
+	}
 
 	var input models.User
 
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{
+			"error": err.Error(),
+		})
 		return
 	}
 
-	_, err := db.Pool.Exec(context.Background(), `
-		UPDATE users
-		SET name = $1, email = $2, age = $3
-		WHERE id = $4
-	`, input.Name, input.Email, input.Age, id)
+	user.FirstName = input.FirstName
+	user.LastName = input.LastName
+	user.Email = input.Email
 
-	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+	if err := db.DB.Save(&user).Error; err != nil {
+		c.JSON(500, gin.H{
+			"error": err.Error(),
+		})
 		return
 	}
 
-	input.ID = id
-	c.JSON(200, input)
+	c.JSON(200, user)
 }
 
+// DeleteUser godoc
+// @Summary Delete user
+// @Tags users
+// @Produce json
+// @Param id path int true "User ID"
+// @Success 200 {object} map[string]string
+// @Router /users/{id} [delete]
 func DeleteUser(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
+	id := c.Param("id")
 
-	_, err := db.Pool.Exec(context.Background(), `
-		DELETE FROM users
-		WHERE id = $1
-	`, id)
-
-	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+	if err := db.DB.Delete(&models.User{}, id).Error; err != nil {
+		c.JSON(500, gin.H{
+			"error": err.Error(),
+		})
 		return
 	}
 

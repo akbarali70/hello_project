@@ -6,17 +6,13 @@ import (
 
 	_ "hello_project/docs"
 	"hello_project/internal/db"
+	"hello_project/internal/models"
 	"hello_project/internal/routes"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
 
-// @title Hello Project API
-// @version 1.0
-// @description Gin + PostgreSQL CRUD API
-// @host localhost:8001
-// @BasePath /
 func main() {
 	_ = godotenv.Load()
 
@@ -26,7 +22,13 @@ func main() {
 		log.Fatal(err)
 	}
 
+	db.DB.AutoMigrate(&models.User{})
+
 	port := os.Getenv("APP_PORT")
+
+	if port == "" {
+		port = "8000"
+	}
 
 	r := gin.Default()
 	r.SetTrustedProxies(nil)

@@ -2,8 +2,8 @@ run:
 	go run .
 
 dev:
-	air
-
+	~/go/bin/air
+	
 fmt:
 	go fmt ./...
 
