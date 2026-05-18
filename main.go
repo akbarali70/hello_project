@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	_ "hello_project/docs"
 	"hello_project/internal/db"
@@ -25,10 +26,12 @@ func main() {
 		log.Fatal(err)
 	}
 
+	port := os.Getenv("APP_PORT")
+
 	r := gin.Default()
 	r.SetTrustedProxies(nil)
 
 	routes.RegisterRoutes(r)
 
-	r.Run("0.0.0.0:8001")
+	r.Run("0.0.0.0:" + port)
 }
