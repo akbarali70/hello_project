@@ -1,0 +1,31 @@
+services:
+  app:
+    build: .
+    container_name: hello_app
+    ports:
+      - '8000:8000'
+    environment:
+      DB_HOST: localhost
+      DB_USER: postgres
+      DB_PASSWORD: admin123
+      DB_NAME: hello_golang_db
+      DB_PORT: 5432
+      APP_PORT: 8000
+    # depends_on:
+    #   - db
+
+#   db:
+#     image: postgres:15-alpine
+#     container_name: hello_db
+#     restart: always
+#     environment:
+#       POSTGRES_USER: postgres
+#       POSTGRES_PASSWORD: postgres
+#       POSTGRES_DB: hello_db
+#     ports:
+#       - '5432:5432'
+#     volumes:
+#       - postgres_data:/var/lib/postgresql/data
+
+# volumes:
+#   postgres_data:
